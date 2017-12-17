@@ -1,0 +1,6 @@
+{
+    "selector": {},
+    "update": {
+        "$inc": { "age": 1 }
+    }
+}
