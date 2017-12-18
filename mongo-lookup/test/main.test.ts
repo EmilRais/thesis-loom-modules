@@ -6,7 +6,7 @@ import * as express from "express";
 import { Db, MongoClient } from "mongodb";
 import * as agent from "superagent";
 
-import { AbstractOperation, prepareOperation } from "../source/main";
+import { Operation, prepareOperation } from "../source/main";
 
 describe("operation", () => {
     let database: Db;
@@ -20,7 +20,7 @@ describe("operation", () => {
     });
 
     it("should fail if collection has not been specified", () => {
-        const abstractOperation: AbstractOperation = { module: "mongo-lookup", collection: null };
+        const abstractOperation: Operation = { module: "mongo-lookup", collection: null };
         return prepareOperation(abstractOperation)
             .then(operation => {
                 (operation as any).database.close();
@@ -32,7 +32,7 @@ describe("operation", () => {
     });
 
     it("should update response.locals.boards if boards collection is empty", () => {
-        const abstractOperation: AbstractOperation = { module: "mongo-lookup", collection: "Boards", host: "localhost" };
+        const abstractOperation: Operation = { module: "mongo-lookup", collection: "Boards", host: "localhost" };
         return prepareOperation(abstractOperation)
             .then(operation => {
                 return new Promise((resolve, reject) => {
@@ -56,7 +56,7 @@ describe("operation", () => {
     });
 
     it("should update response.locals.boards if boards collection is not empty", () => {
-        const abstractOperation: AbstractOperation = { module: "mongo-lookup", collection: "Boards", host: "localhost" };
+        const abstractOperation: Operation = { module: "mongo-lookup", collection: "Boards", host: "localhost" };
         return prepareOperation(abstractOperation)
             .then(operation => {
                 return new Promise((resolve, reject) => {
