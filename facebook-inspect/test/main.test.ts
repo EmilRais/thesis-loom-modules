@@ -7,7 +7,7 @@ import * as express from "express";
 import { Server } from "http";
 import * as agent from "superagent";
 
-import { AbstractOperation, prepareOperation } from "../source/main";
+import { Operation, prepareOperation } from "../source/main";
 
 describe("operation", () => {
     let userToken: string;
@@ -22,7 +22,7 @@ describe("operation", () => {
     });
 
     it("should fail if no user token", () => {
-        const abstractOperation: AbstractOperation = { module: "facebook-inspect" };
+        const abstractOperation: Operation = { module: "facebook-inspect" };
         return prepareOperation(abstractOperation)
             .then(operation => {
                 return new Promise((resolve, reject) => {
@@ -48,7 +48,7 @@ describe("operation", () => {
     });
 
     it("should store inspected user token", () => {
-        const abstractOperation: AbstractOperation = { module: "facebook-inspect" };
+        const abstractOperation: Operation = { module: "facebook-inspect" };
         return prepareOperation(abstractOperation)
             .then(operation => {
                 return new Promise((resolve, reject) => {
