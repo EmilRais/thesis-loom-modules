@@ -1,18 +1,22 @@
 import { RequestHandler } from "express";
 import { MongoClient } from "mongodb";
 
-export interface AbstractOperation {
+export interface Operation {
     module: string;
     host?: string;
 }
 
-export const prepareOperation = (abstractOperation: AbstractOperation) => {
-    const host = abstractOperation.host || "mongo";
+export const prepareOperation = (operation: Operation) => {
+    const host = operation.host || "mongo";
 
     return MongoClient.connect(`mongodb://${host}:27017/database`)
         .then(database => {
+            const attachDatabaseForTesting = (handler: RequestHandler) => {
+                (handler as any).database = database;
+                return handler;
+            };
 
-            const concreteOperation: RequestHandler = (request, response, next) => {
+            return Promise.resolve<RequestHandler>((request, response, next) => {
                 const id = request.body.userId;
                 database.collection("Users").findOne({ "credential.userId": id })
                     .then(user => {
@@ -21,10 +25,6 @@ export const prepareOperation = (abstractOperation: AbstractOperation) => {
                         next();
                     })
                     .catch(next);
-            };
-
-            (concreteOperation as any).database = database;
-
-            return concreteOperation;
+            }).then(attachDatabaseForTesting);
         });
 };

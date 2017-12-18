@@ -7,7 +7,7 @@ import * as express from "express";
 import { Db, MongoClient } from "mongodb";
 import * as agent from "superagent";
 
-import { AbstractOperation, prepareOperation } from "../source/main";
+import { Operation, prepareOperation } from "../source/main";
 
 describe("operation", () => {
     let database: Db;
@@ -21,7 +21,7 @@ describe("operation", () => {
     });
 
     it("should fail if no document is found", () => {
-        const abstractOperation: AbstractOperation = { module: "mongo-lookup-one", host: "localhost" };
+        const abstractOperation: Operation = { module: "mongo-lookup-one", host: "localhost" };
         return prepareOperation(abstractOperation)
             .then(operation => {
                 return new Promise((resolve, reject) => {
@@ -47,7 +47,7 @@ describe("operation", () => {
     });
 
     it("should update response.locals.boards if document is found", () => {
-        const abstractOperation: AbstractOperation = { module: "mongo-lookup-one", host: "localhost" };
+        const abstractOperation: Operation = { module: "mongo-lookup-one", host: "localhost" };
         return prepareOperation(abstractOperation)
             .then(operation => {
                 return new Promise((resolve, reject) => {
