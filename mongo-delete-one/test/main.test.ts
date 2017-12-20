@@ -7,7 +7,7 @@ import * as express from "express";
 import { Db, MongoClient } from "mongodb";
 import * as agent from "superagent";
 
-import { AbstractOperation, prepareOperation } from "../source/main";
+import { Operation, prepareOperation } from "../source/main";
 
 describe("operation", () => {
     let database: Db;
@@ -21,7 +21,7 @@ describe("operation", () => {
     });
 
     it("should fail if collection has not been specified", () => {
-        const abstractOperation: AbstractOperation = { module: "mongo-delete-one", collection: null, error: null, host: "localhost" };
+        const abstractOperation: Operation = { module: "mongo-delete-one", collection: null, error: null, host: "localhost" };
         return prepareOperation(abstractOperation)
             .then(operation => {
                 (operation as any).database.close();
@@ -33,7 +33,7 @@ describe("operation", () => {
     });
 
     it("should fail if error has not been specified", () => {
-        const abstractOperation: AbstractOperation = { module: "mongo-delete-one", collection: "items", error: null, host: "localhost" };
+        const abstractOperation: Operation = { module: "mongo-delete-one", collection: "items", error: null, host: "localhost" };
         return prepareOperation(abstractOperation)
             .then(operation => {
                 (operation as any).database.close();
@@ -45,7 +45,7 @@ describe("operation", () => {
     });
 
     it("should fail deleting document that does not exist", () => {
-        const abstractOperation: AbstractOperation = { module: "mongo-delete-one", collection: "items", error: "some-error-message", host: "localhost" };
+        const abstractOperation: Operation = { module: "mongo-delete-one", collection: "items", error: "some-error-message", host: "localhost" };
         return prepareOperation(abstractOperation)
             .then(operation => {
                 return new Promise((resolve, reject) => {
@@ -70,7 +70,7 @@ describe("operation", () => {
     });
 
     it("should succeed deleting document that does exist", () => {
-        const abstractOperation: AbstractOperation = { module: "mongo-delete-one", collection: "items", error: "some-error-message", host: "localhost" };
+        const abstractOperation: Operation = { module: "mongo-delete-one", collection: "items", error: "some-error-message", host: "localhost" };
         return prepareOperation(abstractOperation)
             .then(operation => {
                 return new Promise((resolve, reject) => {
