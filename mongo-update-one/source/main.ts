@@ -20,10 +20,10 @@ interface Query {
 
 export const prepareOperation = (operation: Operation, context: string) => {
     const collection = operation.collection;
-    if ( !collection ) return Promise.reject("mongo-update expected a collection");
+    if ( !collection ) return Promise.reject("mongo-update-one expected a collection");
 
     const query = operation.query;
-    if ( !query ) return Promise.reject("mongo-update expected a query");
+    if ( !query ) return Promise.reject("mongo-update-one expected a query");
     const queryPath = resolvePath(context, query);
     const queryObject = JSON.parse(fs.readFileSync(queryPath).toString());
 

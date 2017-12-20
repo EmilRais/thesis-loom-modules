@@ -25,21 +25,21 @@ describe("operation", () => {
     });
 
     it("should fail if collection has not been specified", () => {
-        const abstractOperation: Operation = { module: "mongo-update", collection: null, query: null };
+        const abstractOperation: Operation = { module: "mongo-update-one", collection: null, query: null };
         return prepareOperation(abstractOperation, null)
             .then(() => Promise.reject("Expected failure"))
-            .catch(error => error.should.equal("mongo-update expected a collection"));
+            .catch(error => error.should.equal("mongo-update-one expected a collection"));
     });
 
     it("should fail if query has not been specified", () => {
-        const abstractOperation: Operation = { module: "mongo-update", collection: "some-collection", query: null };
+        const abstractOperation: Operation = { module: "mongo-update-one", collection: "some-collection", query: null };
         return prepareOperation(abstractOperation, null)
             .then(() => Promise.reject("Expected failure"))
-            .catch(error => error.should.equal("mongo-update expected a query"));
+            .catch(error => error.should.equal("mongo-update-one expected a query"));
     });
 
     it("should perform update", () => {
-        const abstractOperation: Operation = { module: "mongo-update", collection: "Users", query: "queries/simple-query.json", host: "localhost" };
+        const abstractOperation: Operation = { module: "mongo-update-one", collection: "Users", query: "queries/simple-query.json", host: "localhost" };
         return prepareOperation(abstractOperation, "test")
             .then(operation => {
                 return new Promise((resolve, reject) => {
@@ -75,7 +75,7 @@ describe("operation", () => {
     });
 
     it("should store updated object in response.locals.boards", () => {
-        const abstractOperation: Operation = { module: "mongo-update", collection: "Users", query: "queries/simple-query.json", host: "localhost" };
+        const abstractOperation: Operation = { module: "mongo-update-one", collection: "Users", query: "queries/simple-query.json", host: "localhost" };
         return prepareOperation(abstractOperation, "test")
             .then(operation => {
                 return new Promise((resolve, reject) => {
