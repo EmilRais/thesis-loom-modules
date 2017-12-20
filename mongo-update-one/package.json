@@ -1,5 +1,5 @@
 {
-  "name": "mongo-update",
+  "name": "mongo-update-one",
   "version": "1.0.0",
   "description": "",
   "main": "build/source/main.js",

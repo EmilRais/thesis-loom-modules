@@ -6,7 +6,7 @@ import { resolve as resolvePath } from "path";
 import { Evaluator } from "./evaluator";
 const evaluator = new Evaluator();
 
-export interface AbstractOperation {
+export interface Operation {
     module: string;
     collection: string;
     query: string;
@@ -18,21 +18,25 @@ interface Query {
     update: any;
 }
 
-export const prepareOperation = (abstractOperation: AbstractOperation, context: string) => {
-    const collection = abstractOperation.collection;
+export const prepareOperation = (operation: Operation, context: string) => {
+    const collection = operation.collection;
     if ( !collection ) return Promise.reject("mongo-update expected a collection");
 
-    const query = abstractOperation.query;
+    const query = operation.query;
     if ( !query ) return Promise.reject("mongo-update expected a query");
     const queryPath = resolvePath(context, query);
     const queryObject = JSON.parse(fs.readFileSync(queryPath).toString());
 
-    const host = abstractOperation.host || "mongo";
+    const host = operation.host || "mongo";
 
     return MongoClient.connect(`mongodb://${host}:27017/database`)
         .then(database => {
+            const attachDatabaseForTesting = (handler: RequestHandler) => {
+                (handler as any).database = database;
+                return handler;
+            };
 
-            const concreteOperation: RequestHandler = (request, response, next) => {
+            return Promise.resolve<RequestHandler>((request, response, next) => {
                 const actualQuery: Query = evaluator.evaluate(request, response, queryObject);
                 const options = { returnOriginal: false };
 
@@ -42,10 +46,7 @@ export const prepareOperation = (abstractOperation: AbstractOperation, context: 
                         next();
                     })
                     .catch(next);
-            };
 
-            (concreteOperation as any).database = database;
-
-            return concreteOperation;
+            }).then(attachDatabaseForTesting);
         });
 };
