@@ -10,7 +10,8 @@ export interface Operation {
     module: string;
     collection: string;
     selection: string;
-    error: string;
+    error: number;
+    errorMessage: string;
     host?: string;
 }
 
@@ -24,7 +25,11 @@ export const prepareOperation = (operation: Operation, context: string) => {
     const selectionObject = JSON.parse(fs.readFileSync(selectionPath).toString());
 
     const error = operation.error;
-    if ( !error ) return Promise.reject("mongo-delete-one expected an error message");
+    if ( !error ) return Promise.reject("mongo-delete-one expected an error code");
+    if ( typeof error !== "number" ) return Promise.reject("mongo-delete-one expected error code to be a number");
+
+    const errorMessage = operation.errorMessage;
+    if ( !errorMessage && errorMessage !== "" ) return Promise.reject("mongo-delete-one expected an error message");
 
     const host = operation.host || "mongo";
 
@@ -40,7 +45,7 @@ export const prepareOperation = (operation: Operation, context: string) => {
                 database.collection(collection).remove(selector)
                     .then(status => {
                         if ( status.result.n === 0 )
-                            return response.status(400).end(error);
+                            return response.status(error).end(errorMessage);
 
                         next();
                     })
