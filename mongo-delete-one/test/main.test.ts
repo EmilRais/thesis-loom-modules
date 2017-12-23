@@ -21,8 +21,8 @@ describe("operation", () => {
     });
 
     it("should fail if collection has not been specified", () => {
-        const abstractOperation: Operation = { module: "mongo-delete-one", collection: null, error: null, host: "localhost" };
-        return prepareOperation(abstractOperation)
+        const abstractOperation: Operation = { module: "mongo-delete-one", collection: null, selection: null, error: null, host: "localhost" };
+        return prepareOperation(abstractOperation, "test")
             .then(operation => {
                 (operation as any).database.close();
                 return Promise.reject("Expected failure");
@@ -32,9 +32,21 @@ describe("operation", () => {
             });
     });
 
+    it("should fail if selection has not been specified", () => {
+        const abstractOperation: Operation = { module: "mongo-delete-one", collection: "items", selection: null, error: null, host: "localhost" };
+        return prepareOperation(abstractOperation, "test")
+            .then(operation => {
+                (operation as any).database.close();
+                return Promise.reject("Expected failure");
+            })
+            .catch(error => {
+                error.should.equal("mongo-delete-one expected a selection");
+            });
+    });
+
     it("should fail if error has not been specified", () => {
-        const abstractOperation: Operation = { module: "mongo-delete-one", collection: "items", error: null, host: "localhost" };
-        return prepareOperation(abstractOperation)
+        const abstractOperation: Operation = { module: "mongo-delete-one", collection: "items", selection: "queries/simple-selection.json", error: null, host: "localhost" };
+        return prepareOperation(abstractOperation, "test")
             .then(operation => {
                 (operation as any).database.close();
                 return Promise.reject("Expected failure");
@@ -45,8 +57,8 @@ describe("operation", () => {
     });
 
     it("should fail deleting document that does not exist", () => {
-        const abstractOperation: Operation = { module: "mongo-delete-one", collection: "items", error: "some-error-message", host: "localhost" };
-        return prepareOperation(abstractOperation)
+        const abstractOperation: Operation = { module: "mongo-delete-one", collection: "items", selection: "queries/simple-selection.json", error: "some-error-message", host: "localhost" };
+        return prepareOperation(abstractOperation, "test")
             .then(operation => {
                 return new Promise((resolve, reject) => {
                     express()
@@ -70,8 +82,8 @@ describe("operation", () => {
     });
 
     it("should succeed deleting document that does exist", () => {
-        const abstractOperation: Operation = { module: "mongo-delete-one", collection: "items", error: "some-error-message", host: "localhost" };
-        return prepareOperation(abstractOperation)
+        const abstractOperation: Operation = { module: "mongo-delete-one", collection: "items", selection: "queries/simple-selection.json", error: "some-error-message", host: "localhost" };
+        return prepareOperation(abstractOperation, "test")
             .then(operation => {
                 return new Promise((resolve, reject) => {
                     express()
