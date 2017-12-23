@@ -38,6 +38,31 @@ describe("operation", () => {
             .catch(error => error.should.equal("mongo-update-one expected a query"));
     });
 
+    it("should fail if update does not result in change", () => {
+        const abstractOperation: Operation = { module: "mongo-update-one", collection: "Users", query: "queries/simple-query.json", host: "localhost" };
+        return prepareOperation(abstractOperation, "test")
+            .then(operation => {
+                return new Promise((resolve, reject) => {
+                    express()
+                        .use(json())
+                        .use(operation)
+                        .listen(3030, function() {
+                            const runningServer = this;
+
+                            agent.post("localhost:3030").catch(error => error.response)
+                                .then(response => {
+                                    (operation as any).database.close();
+                                    runningServer.close();
+
+                                    response.status.should.equal(500);
+                                    resolve();
+                                })
+                                .catch(reject);
+                        });
+                });
+            });
+    });
+
     it("should perform update", () => {
         const abstractOperation: Operation = { module: "mongo-update-one", collection: "Users", query: "queries/simple-query.json", host: "localhost" };
         return prepareOperation(abstractOperation, "test")

@@ -42,6 +42,8 @@ export const prepareOperation = (operation: Operation, context: string) => {
 
                 database.collection(collection).findOneAndUpdate(actualQuery.selector, actualQuery.update, options)
                     .then(result => {
+                        if ( result.lastErrorObject.n !== 1 ) return response.status(500).end();
+
                         response.locals.boards = result.value;
                         next();
                     })
