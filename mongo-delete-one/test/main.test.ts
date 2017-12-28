@@ -21,7 +21,7 @@ describe("operation", () => {
     });
 
     it("should fail if collection has not been specified", () => {
-        const abstractOperation: Operation = { module: "mongo-delete-one", collection: null, selection: null, error: null, errorMessage: null, host: "localhost" };
+        const abstractOperation: Operation = { module: "mongo-delete-one", collection: null, query: null, error: null, errorMessage: null, host: "localhost" };
         return prepareOperation(abstractOperation, "test")
             .then(operation => {
                 (operation as any).database.close();
@@ -33,19 +33,19 @@ describe("operation", () => {
     });
 
     it("should fail if selection has not been specified", () => {
-        const abstractOperation: Operation = { module: "mongo-delete-one", collection: "items", selection: null, error: null, errorMessage: null, host: "localhost" };
+        const abstractOperation: Operation = { module: "mongo-delete-one", collection: "items", query: null, error: null, errorMessage: null, host: "localhost" };
         return prepareOperation(abstractOperation, "test")
             .then(operation => {
                 (operation as any).database.close();
                 return Promise.reject("Expected failure");
             })
             .catch(error => {
-                error.should.equal("mongo-delete-one expected a selection");
+                error.should.equal("mongo-delete-one expected a query");
             });
     });
 
     it("should fail if error has not been specified", () => {
-        const abstractOperation: Operation = { module: "mongo-delete-one", collection: "items", selection: "queries/simple-selection.json", error: null, errorMessage: null, host: "localhost" };
+        const abstractOperation: Operation = { module: "mongo-delete-one", collection: "items", query: "queries/simple-query.json", error: null, errorMessage: null, host: "localhost" };
         return prepareOperation(abstractOperation, "test")
             .then(operation => {
                 (operation as any).database.close();
@@ -57,7 +57,7 @@ describe("operation", () => {
     });
 
     it("should fail if error is not a number", () => {
-        const abstractOperation: Operation = { module: "mongo-delete-one", collection: "items", selection: "queries/simple-selection.json", error: "500" as any, errorMessage: null, host: "localhost" };
+        const abstractOperation: Operation = { module: "mongo-delete-one", collection: "items", query: "queries/simple-query.json", error: "500" as any, errorMessage: null, host: "localhost" };
         return prepareOperation(abstractOperation, "test")
             .then(operation => {
                 (operation as any).database.close();
@@ -69,7 +69,7 @@ describe("operation", () => {
     });
 
     it("should fail if error message has not been specified", () => {
-        const abstractOperation: Operation = { module: "mongo-delete-one", collection: "items", selection: "queries/simple-selection.json", error: 500, errorMessage: null, host: "localhost" };
+        const abstractOperation: Operation = { module: "mongo-delete-one", collection: "items", query: "queries/simple-query.json", error: 500, errorMessage: null, host: "localhost" };
         return prepareOperation(abstractOperation, "test")
             .then(operation => {
                 (operation as any).database.close();
@@ -81,7 +81,7 @@ describe("operation", () => {
     });
 
     it("should fail deleting document that does not exist", () => {
-        const abstractOperation: Operation = { module: "mongo-delete-one", collection: "items", selection: "queries/simple-selection.json", error: 400, errorMessage: "some-error-message", host: "localhost" };
+        const abstractOperation: Operation = { module: "mongo-delete-one", collection: "items", query: "queries/simple-query.json", error: 400, errorMessage: "some-error-message", host: "localhost" };
         return prepareOperation(abstractOperation, "test")
             .then(operation => {
                 return new Promise((resolve, reject) => {
@@ -106,7 +106,7 @@ describe("operation", () => {
     });
 
     it("should succeed deleting document that does exist", () => {
-        const abstractOperation: Operation = { module: "mongo-delete-one", collection: "items", selection: "queries/simple-selection.json", error: 500, errorMessage: "some-error-message", host: "localhost" };
+        const abstractOperation: Operation = { module: "mongo-delete-one", collection: "items", query: "queries/simple-query.json", error: 500, errorMessage: "some-error-message", host: "localhost" };
         return prepareOperation(abstractOperation, "test")
             .then(operation => {
                 return new Promise((resolve, reject) => {
@@ -116,16 +116,20 @@ describe("operation", () => {
                         .listen(3030, function() {
                             const runningServer = this;
 
-                            const document = { _id: "some-id" };
-                            database.collection("items").insert(document).then(() => {
-                                agent.post("localhost:3030/some-id")
+                            const document1 = { _id: "some-id-1" };
+                            const document2 = { _id: "some-id-2" };
+                            database.collection("items").insert([document1, document2]).then(() => {
+                                agent.post("localhost:3030/some-id-1")
                                     .catch(error => error.response)
                                     .then(response => {
                                         (operation as any).database.close();
                                         runningServer.close();
 
-                                        response.status.should.equal(200);
-                                        resolve();
+                                        return database.collection("items").find().toArray()
+                                            .then(items => {
+                                                items.length.should.equal(1);
+                                                resolve();
+                                            });
                                     })
                                     .catch(reject);
                             });

@@ -9,20 +9,24 @@ const evaluator = new Evaluator();
 export interface Operation {
     module: string;
     collection: string;
-    selection: string;
+    query: string;
     error: number;
     errorMessage: string;
     host?: string;
+}
+
+interface Query {
+    selector: any;
 }
 
 export const prepareOperation = (operation: Operation, context: string) => {
     const collection = operation.collection;
     if ( !collection ) return Promise.reject("mongo-delete-one expected a collection");
 
-    const selection = operation.selection;
-    if ( !selection ) return Promise.reject("mongo-delete-one expected a selection");
-    const selectionPath = resolvePath(context, selection);
-    const selectionObject = JSON.parse(fs.readFileSync(selectionPath).toString());
+    const query = operation.query;
+    if ( !query ) return Promise.reject("mongo-delete-one expected a query");
+    const queryPath = resolvePath(context, query);
+    const queryObject = JSON.parse(fs.readFileSync(queryPath).toString());
 
     const error = operation.error;
     if ( !error ) return Promise.reject("mongo-delete-one expected an error code");
@@ -41,10 +45,10 @@ export const prepareOperation = (operation: Operation, context: string) => {
             };
 
             return Promise.resolve<RequestHandler>((request, response, next) => {
-                const selector = evaluator.evaluate(request, response, selectionObject);
-                database.collection(collection).remove(selector)
+                const actualQuery = evaluator.evaluate(request, response, queryObject);
+                database.collection(collection).findOneAndDelete(actualQuery.selector)
                     .then(status => {
-                        if ( status.result.n === 0 )
+                        if ( status.lastErrorObject.n === 0 )
                             return response.status(error).end(errorMessage);
 
                         next();
