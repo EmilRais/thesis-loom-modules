@@ -69,7 +69,7 @@ describe("operation", () => {
     });
 
     it("should fail if error message has not been specified", () => {
-        const abstractOperation: Operation = { module: "mongo-delete-one", collection: "items", query: "queries/simple-query.json", error: 500, errorMessage: null, host: "localhost" };
+        const abstractOperation: Operation = { module: "mongo-delete-one", collection: "items", query: "queries/simple-query.json", error: 500, errorMessage: "", host: "localhost" };
         return prepareOperation(abstractOperation, "test")
             .then(operation => {
                 (operation as any).database.close();
@@ -97,6 +97,31 @@ describe("operation", () => {
 
                                     response.status.should.equal(400);
                                     response.text.should.equal("some-error-message");
+                                    resolve();
+                                })
+                                .catch(reject);
+                        });
+                });
+            });
+    });
+
+    it("should fail deleting document with no error message if error message is null", () => {
+        const abstractOperation: Operation = { module: "mongo-delete-one", collection: "items", query: "queries/simple-query.json", error: 400, errorMessage: null, host: "localhost" };
+        return prepareOperation(abstractOperation, "test")
+            .then(operation => {
+                return new Promise((resolve, reject) => {
+                    express()
+                        .use("/:id", operation)
+                        .listen(3030, function() {
+                            const runningServer = this;
+                            agent.post("localhost:3030/some-id")
+                                .catch(error => error.response)
+                                .then(response => {
+                                    (operation as any).database.close();
+                                    runningServer.close();
+
+                                    response.status.should.equal(400);
+                                    response.text.should.equal("");
                                     resolve();
                                 })
                                 .catch(reject);

@@ -33,7 +33,7 @@ export const prepareOperation = (operation: Operation, context: string) => {
     if ( typeof error !== "number" ) return Promise.reject("mongo-delete-one expected error code to be a number");
 
     const errorMessage = operation.errorMessage;
-    if ( !errorMessage && errorMessage !== "" ) return Promise.reject("mongo-delete-one expected an error message");
+    if ( !errorMessage && errorMessage !== null ) return Promise.reject("mongo-delete-one expected an error message");
 
     const host = operation.host || "mongo";
 
