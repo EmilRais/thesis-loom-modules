@@ -7,7 +7,7 @@ import * as express from "express";
 import { Db, MongoClient } from "mongodb";
 import * as agent from "superagent";
 
-import { AbstractOperation, prepareOperation } from "../source/main";
+import { Operation, prepareOperation } from "../source/main";
 
 describe("operation", () => {
     let database: Db;
@@ -25,7 +25,7 @@ describe("operation", () => {
     });
 
     it("should fail if collection has not been specified", () => {
-        const abstractOperation: AbstractOperation = { module: "mongo-store", collection: "" };
+        const abstractOperation: Operation = { module: "mongo-store", collection: "" };
         return prepareOperation(abstractOperation)
             .then(() => Promise.reject("Expected failure"))
             .catch(error => {
@@ -34,7 +34,7 @@ describe("operation", () => {
     });
 
     it("should fail if input is an array", () => {
-        const abstractOperation: AbstractOperation = { module: "mongo-store", collection: "Boards", host: "localhost" };
+        const abstractOperation: Operation = { module: "mongo-store", collection: "Boards", host: "localhost" };
         return prepareOperation(abstractOperation)
             .then(operation => {
                 return new Promise((resolve, reject) => {
@@ -64,7 +64,7 @@ describe("operation", () => {
     });
 
     it("should store request.body in boards collection", () => {
-        const abstractOperation: AbstractOperation = { module: "mongo-store", collection: "Boards", host: "localhost" };
+        const abstractOperation: Operation = { module: "mongo-store", collection: "Boards", host: "localhost" };
         return prepareOperation(abstractOperation)
             .then(operation => {
                 return new Promise((resolve, reject) => {
@@ -96,7 +96,7 @@ describe("operation", () => {
     });
 
     it("should store resulting object in response.locals.boards", () => {
-        const abstractOperation: AbstractOperation = { module: "mongo-store", collection: "Boards", host: "localhost" };
+        const abstractOperation: Operation = { module: "mongo-store", collection: "Boards", host: "localhost" };
         return prepareOperation(abstractOperation)
             .then(operation => {
                 return new Promise((resolve, reject) => {
