@@ -29,7 +29,7 @@ describe("operation", () => {
     });
 
     it("should fail if body is missing", () => {
-        const abstractOperation: Operation = { module: "response", status: 200, body: null };
+        const abstractOperation: Operation = { module: "response", status: 200, body: "" };
         return prepareOperation(abstractOperation)
             .then(() => Promise.reject("Expected failure"))
             .catch(error => {
@@ -38,7 +38,7 @@ describe("operation", () => {
     });
 
     it("should return the specified status", () => {
-        const abstractOperation: Operation = { module: "response", status: 200, body: "response.locals.boards" };
+        const abstractOperation: Operation = { module: "response", status: 200, body: null };
         return prepareOperation(abstractOperation)
             .then(operation => {
                 return new Promise((resolve, reject) => {

@@ -15,10 +15,10 @@ export const prepareOperation = (operation: Operation) => {
     if ( typeof status !== "number" ) return Promise.reject("response expected status to be a number");
 
     const body = operation.body;
-    if ( !body ) return Promise.reject("response expected a body");
+    if ( !body && body !== null ) return Promise.reject("response expected a body");
 
     return Promise.resolve<RequestHandler>((request, response, next) => {
-        const returnValue = evaluator.evaluate(request, response, body);
+        const returnValue = body ? evaluator.evaluate(request, response, body) : body;
 
         if ( !returnValue )
             return response.status(status).end();
