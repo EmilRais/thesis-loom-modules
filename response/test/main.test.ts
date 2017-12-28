@@ -11,7 +11,7 @@ import { Operation, prepareOperation } from "../source/main";
 describe("operation", () => {
 
     it("should fail if status is missing", () => {
-        const abstractOperation: Operation = { module: "response", status: null };
+        const abstractOperation: Operation = { module: "response", status: null, body: null };
         return prepareOperation(abstractOperation)
             .then(() => Promise.reject("Expected failure"))
             .catch(error => {
@@ -20,7 +20,7 @@ describe("operation", () => {
     });
 
     it("should fail if status is not a number", () => {
-        const abstractOperation: Operation = { module: "response", status: "200" as any };
+        const abstractOperation: Operation = { module: "response", status: "200" as any, body: null };
         return prepareOperation(abstractOperation)
             .then(() => Promise.reject("Expected failure"))
             .catch(error => {
@@ -28,8 +28,17 @@ describe("operation", () => {
             });
     });
 
+    it("should fail if body is missing", () => {
+        const abstractOperation: Operation = { module: "response", status: 200, body: null };
+        return prepareOperation(abstractOperation)
+            .then(() => Promise.reject("Expected failure"))
+            .catch(error => {
+                error.should.equal("response expected a body");
+            });
+    });
+
     it("should return the specified status", () => {
-        const abstractOperation: Operation = { module: "response", status: 200 };
+        const abstractOperation: Operation = { module: "response", status: 200, body: "response.locals.boards" };
         return prepareOperation(abstractOperation)
             .then(operation => {
                 return new Promise((resolve, reject) => {
@@ -50,13 +59,35 @@ describe("operation", () => {
             });
     });
 
-    it("should return response.locals.boards as json", () => {
+    it("should return text as plain text", () => {
+        const abstractOperation: Operation = { module: "response", status: 200, body: "'some-text'" };
+        return prepareOperation(abstractOperation)
+            .then(operation => {
+                return new Promise((resolve, reject) => {
+                    express()
+                        .use(operation)
+                        .listen(3030, function() {
+                            const runningServer: Server = this;
+                            agent.get("localhost:3030")
+                                .catch(error => error.response)
+                                .then(response => {
+                                    runningServer.close();
+                                    response.text.should.equal("some-text");
+                                    resolve();
+                                })
+                                .catch(reject);
+                        });
+                });
+            });
+    });
+
+    it("should return array as json", () => {
         const boards = [
             { name: "board1" },
             { name: "board2" }
         ];
 
-        const abstractOperation: Operation = { module: "response", status: 200 };
+        const abstractOperation: Operation = { module: "response", status: 200, body: "response.locals.boards" };
         return prepareOperation(abstractOperation)
             .then(operation => {
                 return new Promise((resolve, reject) => {
