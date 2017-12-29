@@ -21,35 +21,42 @@ describe("operation", () => {
     });
 
     it("should fail if collection has not been specified", () => {
-        const abstractOperation: Operation = { module: "mongo-lookup-one", collection: null, query: null, error: null, host: "localhost" };
+        const abstractOperation: Operation = { module: "mongo-lookup-one", collection: null, query: null, error: null, errorMessage: null, host: "localhost" };
         return prepareOperation(abstractOperation, "test")
             .then(() => Promise.reject("Expected failure"))
             .catch(error => error.should.equal("mongo-lookup-one expected a collection"));
     });
 
     it("should fail if query has not been specified", () => {
-        const abstractOperation: Operation = { module: "mongo-lookup-one", collection: "items", query: null, error: null, host: "localhost" };
+        const abstractOperation: Operation = { module: "mongo-lookup-one", collection: "items", query: null, error: null, errorMessage: null, host: "localhost" };
         return prepareOperation(abstractOperation, "test")
             .then(() => Promise.reject("Expected failure"))
             .catch(error => error.should.equal("mongo-lookup-one expected a query"));
     });
 
     it("should fail if error has not been specified", () => {
-        const abstractOperation: Operation = { module: "mongo-lookup-one", collection: "items", query: "queries/some-query.json", error: null, host: "localhost" };
+        const abstractOperation: Operation = { module: "mongo-lookup-one", collection: "items", query: "queries/some-query.json", error: null, errorMessage: null, host: "localhost" };
         return prepareOperation(abstractOperation, "test")
             .then(() => Promise.reject("Expected failure"))
             .catch(error => error.should.equal("mongo-lookup-one expected an error code"));
     });
 
     it("should fail if error is not a number", () => {
-        const abstractOperation: Operation = { module: "mongo-lookup-one", collection: "items", query: "queries/some-query.json", error: "500" as any, host: "localhost" };
+        const abstractOperation: Operation = { module: "mongo-lookup-one", collection: "items", query: "queries/some-query.json", error: "500" as any, errorMessage: null, host: "localhost" };
         return prepareOperation(abstractOperation, "test")
             .then(() => Promise.reject("Expected failure"))
             .catch(error => error.should.equal("mongo-lookup-one expected error code to be a number"));
     });
 
-    it("should fail if no document is found", () => {
-        const abstractOperation: Operation = { module: "mongo-lookup-one", collection: "items", query: "queries/some-query.json", error: 500, host: "localhost" };
+    it("should fail if error message has not been specified", () => {
+        const abstractOperation: Operation = { module: "mongo-lookup-one", collection: "items", query: "queries/some-query.json", error: 500, errorMessage: "", host: "localhost" };
+        return prepareOperation(abstractOperation, "test")
+            .then(() => Promise.reject("Expected failure"))
+            .catch(error => error.should.equal("mongo-lookup-one expected an error message"));
+    });
+
+    it("should fail with error code if no document is found", () => {
+        const abstractOperation: Operation = { module: "mongo-lookup-one", collection: "items", query: "queries/some-query.json", error: 500, errorMessage: null, host: "localhost" };
         return prepareOperation(abstractOperation, "test")
             .then(operation => {
                 return new Promise((resolve, reject) => {
@@ -65,7 +72,56 @@ describe("operation", () => {
                                     (operation as any).database.close();
                                     runningServer.close();
                                     response.status.should.equal(500);
-                                    response.text.should.equal("Bruger ikke oprettet");
+                                    resolve();
+                                })
+                                .catch(reject);
+                        });
+                });
+            });
+    });
+
+    it("should fail with no error message if error message is null and no document is found", () => {
+        const abstractOperation: Operation = { module: "mongo-lookup-one", collection: "items", query: "queries/some-query.json", error: 500, errorMessage: null, host: "localhost" };
+        return prepareOperation(abstractOperation, "test")
+            .then(operation => {
+                return new Promise((resolve, reject) => {
+                    express()
+                        .use(json())
+                        .use(operation)
+                        .listen(3030, function() {
+                            const runningServer = this;
+                            agent.post("localhost:3030")
+                                .send({ userId: "unknown-user-id" })
+                                .catch(error => error.response)
+                                .then(response => {
+                                    (operation as any).database.close();
+                                    runningServer.close();
+                                    response.text.should.equal("");
+                                    resolve();
+                                })
+                                .catch(reject);
+                        });
+                });
+            });
+    });
+
+    it("should fail with specified error message if no document is found", () => {
+        const abstractOperation: Operation = { module: "mongo-lookup-one", collection: "items", query: "queries/some-query.json", error: 500, errorMessage: "'some' + ' ' + 'message'", host: "localhost" };
+        return prepareOperation(abstractOperation, "test")
+            .then(operation => {
+                return new Promise((resolve, reject) => {
+                    express()
+                        .use(json())
+                        .use(operation)
+                        .listen(3030, function() {
+                            const runningServer = this;
+                            agent.post("localhost:3030")
+                                .send({ userId: "unknown-user-id" })
+                                .catch(error => error.response)
+                                .then(response => {
+                                    (operation as any).database.close();
+                                    runningServer.close();
+                                    response.text.should.equal("some message");
                                     resolve();
                                 })
                                 .catch(reject);
@@ -75,7 +131,7 @@ describe("operation", () => {
     });
 
     it("should place found document in response.locals.boards", () => {
-        const abstractOperation: Operation = { module: "mongo-lookup-one", collection: "items", query: "queries/some-query.json", error: 500, host: "localhost" };
+        const abstractOperation: Operation = { module: "mongo-lookup-one", collection: "items", query: "queries/some-query.json", error: 500, errorMessage: null, host: "localhost" };
         return prepareOperation(abstractOperation, "test")
             .then(operation => {
                 return new Promise((resolve, reject) => {
