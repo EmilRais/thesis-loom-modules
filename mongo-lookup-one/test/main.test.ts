@@ -21,15 +21,22 @@ describe("operation", () => {
     });
 
     it("should fail if collection has not been specified", () => {
-        const abstractOperation: Operation = { module: "mongo-lookup-one", collection: null, host: "localhost" };
-        return prepareOperation(abstractOperation)
+        const abstractOperation: Operation = { module: "mongo-lookup-one", collection: null, query: null, host: "localhost" };
+        return prepareOperation(abstractOperation, "test")
             .then(() => Promise.reject("Expected failure"))
             .catch(error => error.should.equal("mongo-lookup-one expected a collection"));
     });
 
+    it("should fail if query has not been specified", () => {
+        const abstractOperation: Operation = { module: "mongo-lookup-one", collection: "items", query: null, host: "localhost" };
+        return prepareOperation(abstractOperation, "test")
+            .then(() => Promise.reject("Expected failure"))
+            .catch(error => error.should.equal("mongo-lookup-one expected a query"));
+    });
+
     it("should fail if no document is found", () => {
-        const abstractOperation: Operation = { module: "mongo-lookup-one", collection: "items", host: "localhost" };
-        return prepareOperation(abstractOperation)
+        const abstractOperation: Operation = { module: "mongo-lookup-one", collection: "items", query: "queries/some-query.json", host: "localhost" };
+        return prepareOperation(abstractOperation, "test")
             .then(operation => {
                 return new Promise((resolve, reject) => {
                     express()
@@ -54,8 +61,8 @@ describe("operation", () => {
     });
 
     it("should place found document in response.locals.boards", () => {
-        const abstractOperation: Operation = { module: "mongo-lookup-one", collection: "items", host: "localhost" };
-        return prepareOperation(abstractOperation)
+        const abstractOperation: Operation = { module: "mongo-lookup-one", collection: "items", query: "queries/some-query.json", host: "localhost" };
+        return prepareOperation(abstractOperation, "test")
             .then(operation => {
                 return new Promise((resolve, reject) => {
                     express()
@@ -65,19 +72,24 @@ describe("operation", () => {
                         .listen(3030, function() {
                             const runningServer = this;
 
-                            const user = {
-                                _id: "1",
-                                credential: { userId: "user-id" }
+                            const user1 = {
+                                _id: "id-1",
+                                credential: { userId: "user-id-1" }
                             };
 
-                            database.collection("items").insert(user).then(() => {
+                            const user2 = {
+                                _id: "id-2",
+                                credential: { userId: "user-id-2" }
+                            };
+
+                            database.collection("items").insert([user1, user2]).then(() => {
                                 agent.post("localhost:3030")
-                                    .send({ userId: "user-id" })
+                                    .send({ userId: "user-id-2" })
                                     .catch(error => error.response)
                                     .then(response => {
                                         (operation as any).database.close();
                                         runningServer.close();
-                                        response.body.should.deep.equal(user);
+                                        response.body.should.deep.equal(user2);
                                         resolve();
                                     })
                                     .catch(reject);

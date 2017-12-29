@@ -1,15 +1,30 @@
 import { RequestHandler } from "express";
+import * as fs from "fs";
 import { MongoClient } from "mongodb";
+import { resolve as resolvePath } from "path";
+
+import { Evaluator } from "./evaluator";
+const evaluator = new Evaluator();
 
 export interface Operation {
     module: string;
     collection: string;
+    query: string;
     host?: string;
 }
 
-export const prepareOperation = (operation: Operation) => {
+interface Query {
+    selector: any;
+}
+
+export const prepareOperation = (operation: Operation, context: string) => {
     const collection = operation.collection;
     if ( !collection ) return Promise.reject("mongo-lookup-one expected a collection");
+
+    const query = operation.query;
+    if ( !query ) return Promise.reject("mongo-lookup-one expected a query");
+    const queryPath = resolvePath(context, query);
+    const queryObject = JSON.parse(fs.readFileSync(queryPath).toString());
 
     const host = operation.host || "mongo";
 
@@ -21,8 +36,8 @@ export const prepareOperation = (operation: Operation) => {
             };
 
             return Promise.resolve<RequestHandler>((request, response, next) => {
-                const id = request.body.userId;
-                database.collection(collection).findOne({ "credential.userId": id })
+                const actualQuery: Query = evaluator.evaluate(request, response, queryObject);
+                database.collection(collection).findOne(actualQuery.selector)
                     .then(user => {
                         if ( !user ) return response.status(406).end("Bruger ikke oprettet");
                         response.locals.boards = user;
