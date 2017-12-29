@@ -1,9 +1,13 @@
 import { RequestHandler } from "express";
 
+import { Evaluator } from "./evaluator";
 import { Facebook } from "./facebook";
+
+const evaluator = new Evaluator();
 
 export interface Operation {
     module: string;
+    token: string;
 }
 
 export const prepareOperation = (operation: Operation) => {
@@ -11,8 +15,11 @@ export const prepareOperation = (operation: Operation) => {
     const appSecret = "470f440e050eb59788e7178c86ca982f";
     const facebook = new Facebook(appId, appSecret);
 
+    const token = operation.token;
+    if ( !token ) return Promise.reject("facebook-inspect expected a token");
+
     return Promise.resolve<RequestHandler>((request, response, next) => {
-        const userToken = request.body.token;
+        const userToken = evaluator.evaluate(request, response, token);
         facebook.inspectToken(userToken)
             .then(inspectedToken => response.locals.boards = inspectedToken)
             .then(() => next())
