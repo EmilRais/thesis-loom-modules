@@ -20,8 +20,15 @@ describe("operation", () => {
         database.close();
     });
 
+    it("should fail if collection has not been specified", () => {
+        const abstractOperation: Operation = { module: "mongo-lookup-one", collection: null, host: "localhost" };
+        return prepareOperation(abstractOperation)
+            .then(() => Promise.reject("Expected failure"))
+            .catch(error => error.should.equal("mongo-lookup-one expected a collection"));
+    });
+
     it("should fail if no document is found", () => {
-        const abstractOperation: Operation = { module: "mongo-lookup-one", host: "localhost" };
+        const abstractOperation: Operation = { module: "mongo-lookup-one", collection: "Users", host: "localhost" };
         return prepareOperation(abstractOperation)
             .then(operation => {
                 return new Promise((resolve, reject) => {
@@ -47,7 +54,7 @@ describe("operation", () => {
     });
 
     it("should update response.locals.boards if document is found", () => {
-        const abstractOperation: Operation = { module: "mongo-lookup-one", host: "localhost" };
+        const abstractOperation: Operation = { module: "mongo-lookup-one", collection: "Users", host: "localhost" };
         return prepareOperation(abstractOperation)
             .then(operation => {
                 return new Promise((resolve, reject) => {

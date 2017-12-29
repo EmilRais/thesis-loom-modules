@@ -3,10 +3,14 @@ import { MongoClient } from "mongodb";
 
 export interface Operation {
     module: string;
+    collection: string;
     host?: string;
 }
 
 export const prepareOperation = (operation: Operation) => {
+    const collection = operation.collection;
+    if ( !collection ) return Promise.reject("mongo-lookup-one expected a collection");
+
     const host = operation.host || "mongo";
 
     return MongoClient.connect(`mongodb://${host}:27017/database`)
