@@ -21,8 +21,15 @@ describe("operation", () => {
             });
     });
 
+    it("should fail if token has not been specified", () => {
+        const abstractOperation: Operation = { module: "facebook-extend", token: null };
+        return prepareOperation(abstractOperation)
+            .then(() => Promise.reject("Expected failure"))
+            .catch(error => error.should.equal("facebook-extend expected a token"));
+    });
+
     it("should fail if no user token", () => {
-        const abstractOperation: Operation = { module: "facebook-extend" };
+        const abstractOperation: Operation = { module: "facebook-extend", token: "response.locals.void" };
         return prepareOperation(abstractOperation)
             .then(operation => {
                 return new Promise((resolve, reject) => {
@@ -33,7 +40,7 @@ describe("operation", () => {
                         .listen(3030, function() {
                             const runningServer: Server = this;
                             agent.post("localhost:3030")
-                                .send({ token: null })
+                                .send({ token: userToken })
                                 .catch(error => error.response)
                                 .then(response => {
                                     runningServer.close();
@@ -48,7 +55,7 @@ describe("operation", () => {
     });
 
     it("should store inspected user token", () => {
-        const abstractOperation: Operation = { module: "facebook-extend" };
+        const abstractOperation: Operation = { module: "facebook-extend", token: "request.body.token" };
         return prepareOperation(abstractOperation)
             .then(operation => {
                 return new Promise((resolve, reject) => {
