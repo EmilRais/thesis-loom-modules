@@ -22,7 +22,7 @@ export const prepareOperation = (operation: Operation) => {
 
             return Promise.resolve<RequestHandler>((request, response, next) => {
                 const id = request.body.userId;
-                database.collection("Users").findOne({ "credential.userId": id })
+                database.collection(collection).findOne({ "credential.userId": id })
                     .then(user => {
                         if ( !user ) return response.status(406).end("Bruger ikke oprettet");
                         response.locals.boards = user;

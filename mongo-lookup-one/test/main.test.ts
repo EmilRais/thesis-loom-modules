@@ -28,7 +28,7 @@ describe("operation", () => {
     });
 
     it("should fail if no document is found", () => {
-        const abstractOperation: Operation = { module: "mongo-lookup-one", collection: "Users", host: "localhost" };
+        const abstractOperation: Operation = { module: "mongo-lookup-one", collection: "items", host: "localhost" };
         return prepareOperation(abstractOperation)
             .then(operation => {
                 return new Promise((resolve, reject) => {
@@ -53,8 +53,8 @@ describe("operation", () => {
             });
     });
 
-    it("should update response.locals.boards if document is found", () => {
-        const abstractOperation: Operation = { module: "mongo-lookup-one", collection: "Users", host: "localhost" };
+    it("should place found document in response.locals.boards", () => {
+        const abstractOperation: Operation = { module: "mongo-lookup-one", collection: "items", host: "localhost" };
         return prepareOperation(abstractOperation)
             .then(operation => {
                 return new Promise((resolve, reject) => {
@@ -70,7 +70,7 @@ describe("operation", () => {
                                 credential: { userId: "user-id" }
                             };
 
-                            database.collection("Users").insert(user).then(() => {
+                            database.collection("items").insert(user).then(() => {
                                 agent.post("localhost:3030")
                                     .send({ userId: "user-id" })
                                     .catch(error => error.response)
