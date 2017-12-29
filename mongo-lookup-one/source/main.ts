@@ -10,6 +10,7 @@ export interface Operation {
     module: string;
     collection: string;
     query: string;
+    error: number;
     host?: string;
 }
 
@@ -26,6 +27,10 @@ export const prepareOperation = (operation: Operation, context: string) => {
     const queryPath = resolvePath(context, query);
     const queryObject = JSON.parse(fs.readFileSync(queryPath).toString());
 
+    const error = operation.error;
+    if ( !error ) return Promise.reject("mongo-lookup-one expected an error code");
+    if ( typeof error !== "number" ) return Promise.reject("mongo-lookup-one expected error code to be a number");
+
     const host = operation.host || "mongo";
 
     return MongoClient.connect(`mongodb://${host}:27017/database`)
@@ -39,7 +44,7 @@ export const prepareOperation = (operation: Operation, context: string) => {
                 const actualQuery: Query = evaluator.evaluate(request, response, queryObject);
                 database.collection(collection).findOne(actualQuery.selector)
                     .then(user => {
-                        if ( !user ) return response.status(406).end("Bruger ikke oprettet");
+                        if ( !user ) return response.status(error).end("Bruger ikke oprettet");
                         response.locals.boards = user;
                         next();
                     })

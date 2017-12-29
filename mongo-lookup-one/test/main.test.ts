@@ -21,21 +21,35 @@ describe("operation", () => {
     });
 
     it("should fail if collection has not been specified", () => {
-        const abstractOperation: Operation = { module: "mongo-lookup-one", collection: null, query: null, host: "localhost" };
+        const abstractOperation: Operation = { module: "mongo-lookup-one", collection: null, query: null, error: null, host: "localhost" };
         return prepareOperation(abstractOperation, "test")
             .then(() => Promise.reject("Expected failure"))
             .catch(error => error.should.equal("mongo-lookup-one expected a collection"));
     });
 
     it("should fail if query has not been specified", () => {
-        const abstractOperation: Operation = { module: "mongo-lookup-one", collection: "items", query: null, host: "localhost" };
+        const abstractOperation: Operation = { module: "mongo-lookup-one", collection: "items", query: null, error: null, host: "localhost" };
         return prepareOperation(abstractOperation, "test")
             .then(() => Promise.reject("Expected failure"))
             .catch(error => error.should.equal("mongo-lookup-one expected a query"));
     });
 
+    it("should fail if error has not been specified", () => {
+        const abstractOperation: Operation = { module: "mongo-lookup-one", collection: "items", query: "queries/some-query.json", error: null, host: "localhost" };
+        return prepareOperation(abstractOperation, "test")
+            .then(() => Promise.reject("Expected failure"))
+            .catch(error => error.should.equal("mongo-lookup-one expected an error code"));
+    });
+
+    it("should fail if error is not a number", () => {
+        const abstractOperation: Operation = { module: "mongo-lookup-one", collection: "items", query: "queries/some-query.json", error: "500" as any, host: "localhost" };
+        return prepareOperation(abstractOperation, "test")
+            .then(() => Promise.reject("Expected failure"))
+            .catch(error => error.should.equal("mongo-lookup-one expected error code to be a number"));
+    });
+
     it("should fail if no document is found", () => {
-        const abstractOperation: Operation = { module: "mongo-lookup-one", collection: "items", query: "queries/some-query.json", host: "localhost" };
+        const abstractOperation: Operation = { module: "mongo-lookup-one", collection: "items", query: "queries/some-query.json", error: 500, host: "localhost" };
         return prepareOperation(abstractOperation, "test")
             .then(operation => {
                 return new Promise((resolve, reject) => {
@@ -50,7 +64,7 @@ describe("operation", () => {
                                 .then(response => {
                                     (operation as any).database.close();
                                     runningServer.close();
-                                    response.status.should.equal(406);
+                                    response.status.should.equal(500);
                                     response.text.should.equal("Bruger ikke oprettet");
                                     resolve();
                                 })
@@ -61,7 +75,7 @@ describe("operation", () => {
     });
 
     it("should place found document in response.locals.boards", () => {
-        const abstractOperation: Operation = { module: "mongo-lookup-one", collection: "items", query: "queries/some-query.json", host: "localhost" };
+        const abstractOperation: Operation = { module: "mongo-lookup-one", collection: "items", query: "queries/some-query.json", error: 500, host: "localhost" };
         return prepareOperation(abstractOperation, "test")
             .then(operation => {
                 return new Promise((resolve, reject) => {
