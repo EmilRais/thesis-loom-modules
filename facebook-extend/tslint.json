@@ -6,6 +6,7 @@
     "jsRules": {},
     "rules": {
         "curly": false,
+        "no-eval": false,
         "no-empty": false,
         "arrow-parens": false,
         "member-access": false,

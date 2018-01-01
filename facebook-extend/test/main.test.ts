@@ -22,14 +22,21 @@ describe("operation", () => {
     });
 
     it("should fail if token has not been specified", () => {
-        const abstractOperation: Operation = { module: "facebook-extend", token: null };
+        const abstractOperation: Operation = { module: "facebook-extend", token: null, output: null };
         return prepareOperation(abstractOperation)
             .then(() => Promise.reject("Expected failure"))
             .catch(error => error.should.equal("facebook-extend expected a token"));
     });
 
+    it("should fail if output variable has not been specified", () => {
+        const abstractOperation: Operation = { module: "facebook-extend", token: "token", output: null };
+        return prepareOperation(abstractOperation)
+            .then(() => Promise.reject("Expected failure"))
+            .catch(error => error.should.equal("facebook-extend expected an output variable"));
+    });
+
     it("should fail if no user token", () => {
-        const abstractOperation: Operation = { module: "facebook-extend", token: "response.locals.void" };
+        const abstractOperation: Operation = { module: "facebook-extend", token: "response.locals.void", output: "output" };
         return prepareOperation(abstractOperation)
             .then(operation => {
                 return new Promise((resolve, reject) => {
@@ -55,14 +62,14 @@ describe("operation", () => {
     });
 
     it("should store inspected user token", () => {
-        const abstractOperation: Operation = { module: "facebook-extend", token: "request.body.token" };
+        const abstractOperation: Operation = { module: "facebook-extend", token: "request.body.token", output: "response.locals.value" };
         return prepareOperation(abstractOperation)
             .then(operation => {
                 return new Promise((resolve, reject) => {
                     express()
                         .use(json())
                         .use(operation)
-                        .use(returnBoards())
+                        .use(returnValue())
                         .listen(3030, function() {
                             const runningServer: Server = this;
                             agent.post("localhost:3030")
@@ -90,8 +97,8 @@ const errorHandler: () => ErrorRequestHandler = () => {
     };
 };
 
-const returnBoards: () => RequestHandler = () => {
+const returnValue: () => RequestHandler = () => {
     return (request, response, next) => {
-        response.status(200).json(response.locals.boards);
+        response.status(200).json(response.locals.value);
     };
 };
