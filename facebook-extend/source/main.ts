@@ -25,7 +25,7 @@ export const prepareOperation = (operation: Operation) => {
     return Promise.resolve<RequestHandler>((request, response, next) => {
         const userToken = evaluator.evaluate(request, response, token);
         facebook.extendToken(userToken)
-            .then(extendedToken => eval(`${output} = extendedToken`))
+            .then(extendedToken => eval(`${output} = extendedToken.access_token`))
             .then(() => next())
             .catch(next);
     });

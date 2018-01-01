@@ -82,6 +82,7 @@ describe("operation", () => {
                                     const extendedToken: string = response.text;
                                     extendedToken.should.be.string;
                                     extendedToken.length.should.be.greaterThan(160);
+                                    extendedToken.length.should.be.lessThan(200);
                                     resolve();
                                 })
                                 .catch(reject);
